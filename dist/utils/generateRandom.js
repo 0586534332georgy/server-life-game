@@ -2,15 +2,18 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getRandomMatrix = getRandomMatrix;
 function getRandomMatrix(size) {
-    let res = [];
+    let alives = 0;
+    let dwellers = [];
     for (let i = 0; i < size; i++) {
-        res[i] = [];
+        dwellers[i] = [];
         for (let j = 0; j < size; j++) {
-            res[i][j] = getRandomCell();
+            const randomCell = getRandomCell();
+            dwellers[i][j] = randomCell;
+            alives += randomCell;
         }
     }
     function getRandomCell() {
         return Math.trunc(Math.random() * 2);
     }
-    return res;
+    return ({ dwellers, alives });
 }

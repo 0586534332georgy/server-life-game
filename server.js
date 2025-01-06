@@ -17,9 +17,10 @@ app.post('/init/:areaSize', (req, res) => {
     if (isNaN(areaSize) || areaSize <= 0) {
         return res.status(400).send({ message: 'Invalid area size' });
     }
-    lifeMatrix = new LifeMatrix(getRandomMatrix(areaSize));
+    const randomMatrix = getRandomMatrix(areaSize);
+    lifeMatrix = new LifeMatrix(randomMatrix.dwellers);
 
-    res.send({ message: 'Life matrix initialized', areaSize: areaSize });
+    res.send({ message: 'Life matrix initialized', areaSize: areaSize, alives: randomMatrix.alives });
 });
 
 app.post('/next', (req, res) => {
