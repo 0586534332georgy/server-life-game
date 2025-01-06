@@ -4,21 +4,27 @@ exports.LifeMatrix = void 0;
 class LifeMatrix {
     constructor(_dwellers) {
         this._dwellers = _dwellers;
+        this.generation = 0;
+        this.alives = 0;
     }
     get dwellers() {
         return this._dwellers;
     }
     nextGeneration() {
+        this.alives = 0;
         this._dwellers = this._dwellers.map((__, i) => this.getNewRow(i));
-        return this._dwellers;
+        return { generation: ++this.generation, alives: this.alives };
     }
     getNewRow(i) {
         return this._dwellers[i].map((__, j) => this.getNewCell(i, j));
     }
     getNewCell(i, j) {
         const matrixArea = this.getMatrixArea(i, j);
-        const res = matrixArea.reduce((res, row) => res + row.reduce((sum, cell) => sum + cell), 0);
-        return this._dwellers[i][j] ? isAliveFromAlive(res) : isAliveFromDead(res);
+        const currrentReduce = matrixArea.reduce((res, row) => res + row.reduce((sum, cell) => sum + cell), 0);
+        const currentCell = this._dwellers[i][j] ? isAliveFromAlive(currrentReduce)
+            : isAliveFromDead(currrentReduce);
+        this.alives += currentCell;
+        return currentCell;
     }
     getMatrixArea(i, j) {
         const sliceLeft = j == 0 ? 0 : j - 1;
