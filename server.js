@@ -14,8 +14,11 @@ app.use(express.json());
 app.post('/init/:areaSize', (req, res) => {
    const areaSize = parseInt(req.params.areaSize, 10);
    console.log("areaSize: ", areaSize);
-    if (isNaN(areaSize) || areaSize <= 0) {
-        return res.status(400).send({ message: 'Invalid area size' });
+    if (isNaN(areaSize)) {
+        return res.status(400).send({ message: 'Invalid Life matrix size' });
+    }
+    if (areaSize < 10 || areaSize > 1000) {
+        return res.status(400).send({ message: 'The size of the Life matrix must be in the range [10 - 1000]' });
     }
     const randomMatrix = getRandomMatrix(areaSize);
     lifeMatrix = new LifeMatrix(randomMatrix.dwellers);
