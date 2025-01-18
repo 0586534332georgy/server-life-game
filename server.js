@@ -34,6 +34,10 @@ app.post('/next', (req, res) => {
     res.send(nextGen);
 });
 
+app.get('/wakeup', (req, res) => {
+    res.sendStatus(200);
+});
+
 app.listen(port, () => {
     console.log(`Server is running on http://localhost:${port}`);
 });
