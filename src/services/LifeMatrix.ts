@@ -1,14 +1,20 @@
 type ResponseNextProps = {
+    dwellers: number[][],
     generation: number,
     alives: number;
   }
+
+type FromObjectProps = {
+    matrix: number[][],
+    generation: number,
+}  
 
 export class LifeMatrix {
     generation: number;
     alives: number;
 
-    constructor(private _dwellers: number[][]) {
-        this.generation = 0;
+    constructor(private _dwellers: number[][], generation: number = 0) {
+        this.generation = generation;
         this.alives = 0;
     }
 
@@ -19,7 +25,7 @@ export class LifeMatrix {
     nextGeneration(): ResponseNextProps {
         this.alives = 0;
         this._dwellers = this._dwellers.map((__, i) => this.getNewRow(i));
-        return {generation: ++this.generation, alives: this.alives};
+        return {dwellers: this._dwellers, generation: ++this.generation, alives: this.alives};
     }
 
     getNewRow(i: number): number[] {
@@ -28,9 +34,9 @@ export class LifeMatrix {
     }
     getNewCell(i: number, j: number): number {
         const matrixArea = this.getMatrixArea(i, j);
-        const currrentReduce: number = matrixArea.reduce((res, row) => res + row.reduce((sum, cell) => sum + cell ), 0);
-        const currentCell: number = this._dwellers[i][j] ? isAliveFromAlive(currrentReduce) 
-                        : isAliveFromDead(currrentReduce);
+        const currentReduce: number = matrixArea.reduce((res, row) => res + row.reduce((sum, cell) => sum + cell ), 0);
+        const currentCell: number = this._dwellers[i][j] ? isAliveFromAlive(currentReduce) 
+                        : isAliveFromDead(currentReduce);
         this.alives += currentCell;
         return currentCell;
 
@@ -49,6 +55,10 @@ export class LifeMatrix {
 
         return res;
     }
+
+    static fromObject({ matrix, generation }: FromObjectProps): LifeMatrix {
+        return new LifeMatrix(matrix, generation);
+      }
 }
 
     function isAliveFromAlive(n: number): number {
