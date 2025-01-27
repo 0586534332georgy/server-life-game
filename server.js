@@ -7,16 +7,40 @@ const { getRandomMatrix } = require('./dist/utils/generateRandom');
 const app = express();
 const port = 5000;
 
-app.use(cors());
+const allowedOrigins = [
+    'http://localhost:3000',
+    'https://ui-life-game.onrender.com',
+]
+
+app.use(cors({
+    origin:  function (origin, callback) {
+        
+        if (!origin) return callback(null, true);
+        
+        if (allowedOrigins.includes(origin)) {
+            callback(null, true);
+        } else {
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
+    credentials: true,
+    methods: ['GET', 'POST', 'DELETE'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+}));
+
+app.options('*', cors());
+
 app.use(express.json());
 
 app.use(session({
-    secret: 'your-secret-key', // Secret used to sign the session ID cookie
+    secret: 'my-secret-key', // Secret used to sign the session ID cookie
     resave: false, // Don't save the session if it wasn't modified
     saveUninitialized: true, // Create a session even if nothing is stored
     cookie: {
-      secure: false, // Set to true if using HTTPS
-      maxAge: 1000 * 60 * 60 * 24, // Session duration (e.g., 1 day)
+      secure: true, // Set to true if using HTTPS
+      httpOnly: true, // Prevent client-side JS from accessing the cookie
+      sameSite: 'none',
+      maxAge: 1000 * 60 * 60 * 24, // Session duration (1 day)
     },
   }));
 
@@ -36,7 +60,8 @@ app.post('/init/:areaSize', (req, res) => {
     res.send({ message: 'Life matrix initialized', areaSize: areaSize, alives: randomMatrix.alives });
 });
 
-app.post('/next', (req, res) => {
+app.post('/next', (req, res) => { 
+
     if (!req.session.lifeMatrix) {
         return res.status(400).send({ message: 'Life matrix not initialized' });
     }
