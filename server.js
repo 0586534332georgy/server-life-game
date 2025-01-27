@@ -1,5 +1,7 @@
+require('dotenv').config();
 const express = require('express');
 const session = require('express-session');
+const MongoStore = require('connect-mongo');
 const cors = require('cors');
 const { LifeMatrix } = require('./dist/services/LifeMatrix');
 const { getRandomMatrix } = require('./dist/utils/generateRandom');
@@ -35,7 +37,13 @@ app.use(express.json());
 app.use(session({
     secret: 'my-secret-key', // Secret used to sign the session ID cookie
     resave: false, // Don't save the session if it wasn't modified
-    saveUninitialized: true, // Create a session even if nothing is stored
+    saveUninitialized: false, // only save session when data exists
+    store: MongoStore.create({
+        mongoUrl: process.env.MONGO_URL,
+        collectionName: 'sessions', // Name of the collection to store sessions
+        ttl: 14 * 24 * 60 * 60, // Session TTL (time-to-live) in seconds (14 days)
+        autoRemove: 'native',
+    }),
     cookie: {
       secure: true, // Set to true if using HTTPS
       httpOnly: true, // Prevent client-side JS from accessing the cookie
