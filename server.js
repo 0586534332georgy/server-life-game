@@ -9,6 +9,8 @@ const { getRandomMatrix } = require('./dist/utils/generateRandom');
 const app = express();
 const port = 5000;
 
+const isProduction = process.env.NODE_ENV === 'production';
+
 const allowedOrigins = [
     'http://localhost:3000',
     'https://ui-life-game.onrender.com',
@@ -40,14 +42,14 @@ app.use(session({
     saveUninitialized: false, // only save session when data exists
     store: MongoStore.create({
         mongoUrl: process.env.MONGO_URL,
-        collectionName: 'sessions', // Name of the collection to store sessions
-        ttl: 14 * 24 * 60 * 60, // Session TTL (time-to-live) in seconds (14 days)
+        collectionName: 'sessions',
+        ttl: 24 * 60 * 60, // Session TTL in seconds
         autoRemove: 'native',
     }),
     cookie: {
-      secure: true, // Set to true if using HTTPS
+      secure: isProduction, // Set to true if using HTTPS
       httpOnly: true, // Prevent client-side JS from accessing the cookie
-      sameSite: 'none',
+      sameSite: isProduction ? 'none' : 'lax',
       maxAge: 1000 * 60 * 60 * 24, // Session duration (1 day)
     },
   }));
