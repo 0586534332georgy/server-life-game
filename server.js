@@ -1,93 +1,21 @@
 require('dotenv').config();
+require('module-alias/register');
 const express = require('express');
-const session = require('express-session');
-const MongoStore = require('connect-mongo');
 const cors = require('cors');
-const { LifeMatrix } = require('./dist/services/LifeMatrix');
-const { getRandomMatrix } = require('./dist/utils/generateRandom');
+const session = require('express-session');
+const corsOptions = require('@config/corsConfig');
+const sessionConfig = require('@config/sessionConfig');
+const lifeMatrixRoutes = require('@routes/lifeMatrixRoutes');
 
 const app = express();
 const port = 5000;
 
-const isProduction = process.env.NODE_ENV === 'production';
-
-const allowedOrigins = [
-    'http://localhost:3000',
-    'https://ui-life-game.onrender.com',
-]
-
-app.use(cors({
-    origin:  function (origin, callback) {
-        
-        if (!origin) return callback(null, true);
-        
-        if (allowedOrigins.includes(origin)) {
-            callback(null, true);
-        } else {
-            callback(new Error('Not allowed by CORS'));
-        }
-    },
-    credentials: true,
-    methods: ['GET', 'POST', 'DELETE'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
-}));
-
+app.use(cors(corsOptions));
 app.options('*', cors());
-
 app.use(express.json());
+app.use(session(sessionConfig));
 
-app.use(session({
-    secret: 'my-secret-key', // Secret used to sign the session ID cookie
-    resave: false, // Don't save the session if it wasn't modified
-    saveUninitialized: false, // only save session when data exists
-    store: MongoStore.create({
-        mongoUrl: process.env.MONGO_URL,
-        collectionName: 'sessions',
-        ttl: 24 * 60 * 60, // Session TTL in seconds
-        autoRemove: 'native',
-    }),
-    cookie: {
-      secure: isProduction, // Set to true if using HTTPS
-      httpOnly: true, // Prevent client-side JS from accessing the cookie
-      sameSite: isProduction ? 'none' : 'lax',
-      maxAge: 1000 * 60 * 60 * 24, // Session duration (1 day)
-    },
-  }));
-
-app.post('/init/:areaSize', (req, res) => {
-   const areaSize = parseInt(req.params.areaSize, 10);
-   console.log("areaSize: ", areaSize);
-    if (isNaN(areaSize)) {
-        return res.status(400).send({ message: 'Invalid Life matrix size' });
-    }
-    if (areaSize < 10 || areaSize > 1000) {
-        return res.status(400).send({ message: 'The size of the Life matrix must be in the range [10 - 1000]' });
-    }
-    const randomMatrix = getRandomMatrix(areaSize);
-    const lifeMatrix = new LifeMatrix(randomMatrix.dwellers);
-    req.session.lifeMatrix = {matrix: lifeMatrix.dwellers};
-
-    res.send({ message: 'Life matrix initialized', areaSize: areaSize, alives: randomMatrix.alives });
-});
-
-app.post('/next', (req, res) => { 
-
-    if (!req.session.lifeMatrix) {
-        return res.status(400).send({ message: 'Life matrix not initialized' });
-    }
-    const lifeMatrix = LifeMatrix.fromObject(req.session.lifeMatrix);
-    const nextGen = lifeMatrix.nextGeneration();    
-    req.session.lifeMatrix = {
-        matrix: nextGen.dwellers,
-        generation: nextGen.generation
-    };
-
-    res.send({generation: nextGen.generation, alives: nextGen.alives});
-});
-
-app.get('/wakeup', (req, res) => {
-    res.sendStatus(200);
-});
+app.use('/api', lifeMatrixRoutes);
 
 app.listen(port, () => {
     console.log(`Server is running on http://localhost:${port}`);
