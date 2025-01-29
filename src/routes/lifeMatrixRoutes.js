@@ -32,6 +32,15 @@ router.post('/next', (req, res) => {
     res.send({ generation: nextGen.generation, alives: nextGen.alives });
 });
 
+router.delete('/del', (req, res) => {
+    if (!req.session || !req.session.lifeMatrix) {
+        return res.status(400).send({ message: 'No active session to delete' });
+    }
+    req.session = null;
+    res.status(200).send({ message: 'Session was deleted successfully' });
+
+});
+
 router.get('/wakeup', (req, res) => {
     res.sendStatus(200);
 });
