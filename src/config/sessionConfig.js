@@ -15,7 +15,7 @@ const sessionConfig = {
     cookie: {
         secure: isProduction,
         httpOnly: true,
-        sameSite: isProduction ? 'none' : 'lax',
+        sameSite: isProduction ? 'None' : 'Lax',
         maxAge: 1000 * 60 * 60,
     },
 };

@@ -11,7 +11,6 @@ const app = express();
 const port = 5000;
 
 app.use(cors(corsOptions));
-app.options('*', cors());
 app.use(express.json());
 app.use(session(sessionConfig));
 
